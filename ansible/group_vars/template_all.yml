@@ -19,5 +19,3 @@ nexus_certbot_renew_cron_minute: 20
 nexus_certbot_staging: true
 
 
-# === Docker Compose
-docker_compose_version: v2.9.0

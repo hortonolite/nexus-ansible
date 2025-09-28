@@ -100,7 +100,7 @@
     command: "{{ item }}"
     with_items:
       - mkdir -p "{{ nexus_docker_compose_location }}/letsencrypt/live/{{ nexus_server_name }}"
-      - docker-compose run --rm --entrypoint "openssl req -x509 -nodes -newkey rsa:2048 -days 1 -keyout '/etc/letsencrypt/live/{{ nexus_server_name }}/privkey.pem' -out '/etc/letsencrypt/live/{{ nexus_server_name }}/fullchain.pem' -subj '/CN=localhost'" certbot
+      - docker compose run --rm --entrypoint "openssl req -x509 -nodes -newkey rsa:2048 -days 1 -keyout '/etc/letsencrypt/live/{{ nexus_server_name }}/privkey.pem' -out '/etc/letsencrypt/live/{{ nexus_server_name }}/fullchain.pem' -subj '/CN=localhost'" certbot
     args: 
       chdir: "{{ nexus_docker_compose_location }}"
       creates: "{{ nexus_docker_compose_location }}/letsencrypt/live/{{ nexus_server_name }}/fullchain.pem"
@@ -189,7 +189,7 @@
     when: not real_cert.stat.exists
 
   - name: Restart Nginx container
-    command: docker-compose restart nginx
+    command: docker compose restart nginx
     args:
       chdir: "{{ nexus_docker_compose_location }}"
     when: not real_cert.stat.exists
@@ -203,7 +203,7 @@
       hour: "3"
       minute: "20"
       user: root
-      job: "cd {{ nexus_docker_compose_location }} && docker-compose run certbot renew && docker-compose restart nginx"
+      job: "cd {{ nexus_docker_compose_location }} && docker compose run certbot renew && docker compose restart nginx"
   when: (nexus_docker_compose_location|default("") != "") and (nexus_certbot_renew_cron_hour|default("") != "") and (nexus_certbot_renew_cron_minute|default("") != "")
 
 
@@ -223,7 +223,7 @@
     register: first_time_password
 
   - name: Look up Nexus admin first-time password
-    command: docker-compose exec nexus cat /nexus-data/admin.password
+    command: docker compose exec nexus cat /nexus-data/admin.password
     args:
       chdir: "{{ nexus_docker_compose_location }}"
     register: nexus_password_tmp
@@ -257,7 +257,7 @@
       state: absent
 
   - name: Restart Nexus container
-    command: docker-compose restart nexus
+    command: docker compose restart nexus
     args:
       chdir: "{{ nexus_docker_compose_location }}"
   when: (nexus_autoconfiguration|default("") == true) and (first_time_password.stat.exists)
