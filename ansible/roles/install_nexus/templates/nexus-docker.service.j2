@@ -5,8 +5,8 @@ Requires=docker.service
 
 [Service]
 Type=simple
-ExecStart={{ nexus_docker_compose_binary_full_path }} -f {{ nexus_docker_compose_location }}/{{ nexus_docker_compose_file_name }} up
-ExecStop={{ nexus_docker_compose_binary_full_path }} -f {{ nexus_docker_compose_location }}/{{ nexus_docker_compose_file_name }} stop
+ExecStart={{ nexus_docker_compose_command }} -f {{ nexus_docker_compose_location }}/{{ nexus_docker_compose_file_name }} up
+ExecStop={{ nexus_docker_compose_command }} -f {{ nexus_docker_compose_location }}/{{ nexus_docker_compose_file_name }} stop
 
 [Install]
 WantedBy=multi-user.target

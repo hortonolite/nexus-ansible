@@ -1,8 +1,8 @@
 # Nexus Repository Manager + Nginx + Let’s Encrypt SSL in Docker Compose Ansible playbook  
 
-This Ansible playbook installs Docker Compose with Sonatype Nexus Repository Manager OSS 3.x, Nginx reverse proxy and Let's Encrypt SSL with auto-renewal.  
+This Ansible playbook installs the Docker Compose plugin with Sonatype Nexus Repository Manager OSS 3.x, Nginx reverse proxy and Let's Encrypt SSL with auto-renewal.
 
-It was tested on Ubuntu Focal, but should work on other Linux distributions with systemd and Docker Compose support.  
+It was tested on Ubuntu Focal and Debian 12, but should work on other Linux distributions with systemd and Docker Compose support.
 
 
 ## Deployment  
@@ -41,7 +41,7 @@ nexus_certbot_staging: true
 
 
 # === Docker Compose
-docker_compose_version: v2.9.0
+# Docker Compose v2 plugin is installed with Docker Engine packages
 ```
 
 Run Ansible playbook
@@ -132,7 +132,7 @@ ok: [nexus] => (item=web-root)
 
 TASK [install_nexus : Create dummy certificate for "nexus.example.org"] ************************************************************************************
 ok: [nexus] => (item=mkdir -p "/srv/nexus/letsencrypt/live/nexus.example.org")
-ok: [nexus] => (item=docker-compose run --rm --entrypoint "openssl req -x509 -nodes -newkey rsa:2048 -days 1 -keyout '/etc/letsencrypt/live/nexus.example.org/privkey.pem' -out '/etc/letsencrypt/live/nexus.example.org/fullchain.pem' -subj '/CN=localhost'" certbot)
+ok: [nexus] => (item=docker compose run --rm --entrypoint "openssl req -x509 -nodes -newkey rsa:2048 -days 1 -keyout '/etc/letsencrypt/live/nexus.example.org/privkey.pem' -out '/etc/letsencrypt/live/nexus.example.org/fullchain.pem' -subj '/CN=localhost'" certbot)
 
 TASK [install_nexus : Check if Nexus properties file exists] **********************************************************************************************
 ok: [nexus]
