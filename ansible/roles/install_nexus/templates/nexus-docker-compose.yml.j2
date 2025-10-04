@@ -1,3 +1,27 @@
+{% set nexus_aliases = [] %}
+{% if nexus_server_alias %}
+  {% if nexus_server_alias is string %}
+    {% set _ = nexus_aliases.append(nexus_server_alias) %}
+  {% else %}
+    {% for alias in nexus_server_alias %}
+      {% if alias %}
+        {% set _ = nexus_aliases.append(alias) %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
+{% set portainer_aliases = [] %}
+{% if portainer_server_alias %}
+  {% if portainer_server_alias is string %}
+    {% set _ = portainer_aliases.append(portainer_server_alias) %}
+  {% else %}
+    {% for alias in portainer_server_alias %}
+      {% if alias %}
+        {% set _ = portainer_aliases.append(alias) %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
 version: '3.5'
 
 services:
@@ -9,7 +33,7 @@ services:
     ports:
       - {{ nexus_host_port | default(8081) }}:{{ nexus_backend_port }}
     volumes:
-      - /srv/nexus/nexus-data:/nexus-data
+      - {{ nexus_data_directory }}:/nexus-data
 
   nginx:
     restart: unless-stopped
@@ -21,20 +45,50 @@ services:
     depends_on:
       - nexus
     volumes:
-      - /srv/nexus/nginx-conf:/etc/nginx/conf.d
-      - /srv/nexus/dhparam/dhparam-2048.pem:/etc/ssl/certs/dhparam-2048.pem
-      - /srv/nexus/letsencrypt:/etc/letsencrypt
-      - /srv/nexus/web-root:/var/www/html
+      - {{ nexus_docker_compose_location }}/nginx-conf:/etc/nginx/conf.d
+      - {{ nexus_docker_compose_location }}/dhparam/dhparam-2048.pem:/etc/ssl/certs/dhparam-2048.pem
+      - {{ nexus_docker_compose_location }}/letsencrypt:/etc/letsencrypt
+      - {{ nexus_docker_compose_location }}/web-root:/var/www/html
 
   certbot:
     image: certbot/certbot
     container_name: certbot
     volumes:
-      - /srv/nexus/letsencrypt:/etc/letsencrypt
-      - /srv/nexus/web-root:/var/www/html
+      - {{ nexus_docker_compose_location }}/letsencrypt:/etc/letsencrypt
+      - {{ nexus_docker_compose_location }}/web-root:/var/www/html
     depends_on:
       - nginx
-    command: certonly --staging --webroot --webroot-path=/var/www/html --email {{ nexus_certbot_email }} --agree-tos --no-eff-email --force-renewal -d {{ nexus_server_name }}
+{% set cert_domains = [] %}
+{% if nexus_server_name %}
+  {% set _ = cert_domains.append(nexus_server_name) %}
+{% endif %}
+{% for alias in nexus_aliases %}
+  {% set _ = cert_domains.append(alias) %}
+{% endfor %}
+{% if portainer_use_nginx_proxy | bool and portainer_server_name %}
+  {% set _ = cert_domains.append(portainer_server_name) %}
+  {% for alias in portainer_aliases %}
+    {% set _ = cert_domains.append(alias) %}
+  {% endfor %}
+{% endif %}
+{% set cert_domains = cert_domains | unique %}
+    command: certonly --staging --webroot --webroot-path=/var/www/html --email {{ nexus_certbot_email }} --agree-tos --no-eff-email --force-renewal{% for domain in cert_domains %} -d {{ domain }}{% endfor %}
+
+{% if portainer_enabled | bool %}
+  portainer:
+    restart: unless-stopped
+    container_name: portainer
+    image: {{ portainer_image }}
+{% if not portainer_use_nginx_proxy | bool %}
+    ports:
+      - {{ portainer_host_port }}:9443
+{% endif %}
+    expose:
+      - "{{ portainer_backend_port }}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{ portainer_data_directory }}:/data
+{% endif %}
       
 networks:
   default:
