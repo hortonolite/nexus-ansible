@@ -212,6 +212,7 @@
     uri:
       url: "https://{{ nexus_server_name }}/"
       method: GET
+      validate_certs: "{{ not nexus_certbot_staging }}"
     register: _result
     until: _result.status == 200
     retries: 20  # retry X times  
