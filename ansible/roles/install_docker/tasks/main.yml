@@ -51,5 +51,4 @@
       name: '{{ item }}'
       groups: docker
       append: yes
-    loop:
-      - "{{ ansible_user }}"
+    loop: "{{ [ansible_user | default(ansible_user_id)] | union(install_docker_extra_users | default([])) }}"
