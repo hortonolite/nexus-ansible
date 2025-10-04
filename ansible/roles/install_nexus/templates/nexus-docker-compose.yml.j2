@@ -7,7 +7,7 @@ services:
     stop_grace_period: 120s
     image: {{ nexus_docker_image }}
     ports:
-      - 8081:8081
+      - {{ nexus_host_port | default(8081) }}:{{ nexus_backend_port }}
     volumes:
       - /srv/nexus/nexus-data:/nexus-data
 

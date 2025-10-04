@@ -6,6 +6,7 @@ nexus_autoconfiguration: true
 # === Nginx
 nexus_nginx_docker_image: nginx:latest
 nexus_backend_name: nexus
+nexus_host_port: 8081
 nexus_backend_port: 8081
 nexus_server_name: nexus.example.org
 # Example: nexus_server_alias: repo.example.org
