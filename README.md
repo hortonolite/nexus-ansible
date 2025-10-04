@@ -27,6 +27,7 @@ nexus_autoconfiguration: false
 # === Nginx
 nexus_nginx_docker_image: nginx:latest
 nexus_backend_name: nexus
+nexus_host_port: 8081
 nexus_backend_port: 8081
 nexus_server_name: nexus.example.org
 # Example: nexus_server_alias: repo.example.org
@@ -59,7 +60,9 @@ Specify hour and minute of the daily Let's Encrypt certificate renewal cron job 
 
 If you wish to test Let's Encrypt SSL certificates issuing, set  `nexus_certbot_staging: true` - it helps to avoid hitting Let's Encrypt certificate issuing rate limits while running certbot multiple times.  
 
-The `nexus_backend_name` and `nexus_backend_port` parameters are used in Nginx configuration file to tell Nginx reverse proxy how to connect to its backend - Nexus.  
+The `nexus_backend_name` and `nexus_backend_port` parameters are used in Nginx configuration file to tell Nginx reverse proxy how to connect to its backend - Nexus.
+
+Use `nexus_host_port` to control which host port the Nexus container publishes without changing the container-side port. For example, setting `nexus_host_port: 8082` keeps the container listening on the `nexus_backend_port` value (default 8081) while exposing the service externally on port 8082.
 
 The `nexus_server_name` and `nexus_server_alias` parameters instruct Nginx to forward traffic for the specified hostnames to Nexus. You may specify as many `nexus_server_alias` names as you wish, or you may leave it empty or undefined.  
 
