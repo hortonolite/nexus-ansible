@@ -22,6 +22,20 @@
     {% endfor %}
   {% endif %}
 {% endif %}
+{% set cert_domains = [] %}
+{% if nexus_server_name %}
+  {% set _ = cert_domains.append(nexus_server_name) %}
+{% endif %}
+{% for alias in nexus_aliases %}
+  {% set _ = cert_domains.append(alias) %}
+{% endfor %}
+{% if portainer_use_nginx_proxy | bool and portainer_server_name %}
+  {% set _ = cert_domains.append(portainer_server_name) %}
+  {% for alias in portainer_aliases %}
+    {% set _ = cert_domains.append(alias) %}
+  {% endfor %}
+{% endif %}
+{% set cert_domains = cert_domains | unique %}
 version: '3.5'
 
 services:
@@ -58,20 +72,6 @@ services:
       - {{ nexus_docker_compose_location }}/web-root:/var/www/html
     depends_on:
       - nginx
-{% set cert_domains = [] %}
-{% if nexus_server_name %}
-  {% set _ = cert_domains.append(nexus_server_name) %}
-{% endif %}
-{% for alias in nexus_aliases %}
-  {% set _ = cert_domains.append(alias) %}
-{% endfor %}
-{% if portainer_use_nginx_proxy | bool and portainer_server_name %}
-  {% set _ = cert_domains.append(portainer_server_name) %}
-  {% for alias in portainer_aliases %}
-    {% set _ = cert_domains.append(alias) %}
-  {% endfor %}
-{% endif %}
-{% set cert_domains = cert_domains | unique %}
     command: certonly --staging --webroot --webroot-path=/var/www/html --email {{ nexus_certbot_email }} --agree-tos --no-eff-email --force-renewal{% for domain in cert_domains %} -d {{ domain }}{% endfor %}
 
 {% if portainer_enabled | bool %}
@@ -89,7 +89,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - {{ portainer_data_directory }}:/data
 {% endif %}
-      
+
 networks:
   default:
     name: nexus
