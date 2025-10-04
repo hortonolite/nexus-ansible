@@ -1,6 +1,7 @@
 ---
 nexus_docker_compose_template: templates/nexus-docker-compose.yml.j2
 nexus_docker_compose_location: /srv/nexus
+nexus_data_directory: "{{ nexus_docker_compose_location }}/nexus-data"
 nexus_docker_compose_file_name: docker-compose.yml
 nexus_docker_compose_command: docker compose
 
@@ -12,3 +13,12 @@ nexus_autoconfiguration_sh_template: templates/nexus-autoconfiguration.sh.j2
 nexus_autoconfiguration_sh_file_name: nexus-autoconfiguration.sh
 
 nginx_conf_file: templates/nginx.conf.j2
+
+portainer_enabled: false
+portainer_image: portainer/portainer-ce:latest
+portainer_host_port: 9443
+portainer_data_directory: "{{ nexus_docker_compose_location }}/portainer-data"
+portainer_use_nginx_proxy: false
+portainer_server_name: ""
+portainer_server_alias: []
+portainer_backend_port: 9000

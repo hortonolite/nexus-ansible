@@ -21,7 +21,23 @@ Edit `ansible/group_vars/all.yml` and specify your Nexus server DNS name and oth
 ```yaml
 # === Nexus
 nexus_docker_image: sonatype/nexus3:latest
+nexus_docker_compose_location: /srv/nexus
+nexus_data_directory: "{{ nexus_docker_compose_location }}/nexus-data"
 nexus_autoconfiguration: false
+
+
+# === Portainer
+portainer_enabled: false
+portainer_image: portainer/portainer-ce:latest
+portainer_host_port: 9443
+portainer_data_directory: "{{ nexus_docker_compose_location }}/portainer-data"
+portainer_use_nginx_proxy: false
+portainer_server_name: docker.chnch.us
+# Example:
+# portainer_server_alias:
+#   - d.chnch.us
+portainer_server_alias: []
+portainer_backend_port: 9000
 
 
 # === Nginx
@@ -30,8 +46,10 @@ nexus_backend_name: nexus
 nexus_host_port: 8081
 nexus_backend_port: 8081
 nexus_server_name: nexus.example.org
-# Example: nexus_server_alias: repo.example.org
-nexus_server_alias: 
+# Example:
+# nexus_server_alias:
+#   - repo.example.org
+nexus_server_alias: []
 
 
 # == Let's Encrypt
@@ -62,9 +80,13 @@ If you wish to test Let's Encrypt SSL certificates issuing, set  `nexus_certbot_
 
 The `nexus_backend_name` and `nexus_backend_port` parameters are used in Nginx configuration file to tell Nginx reverse proxy how to connect to its backend - Nexus.
 
-Use `nexus_host_port` to control which host port the Nexus container publishes without changing the container-side port. For example, setting `nexus_host_port: 8082` keeps the container listening on the `nexus_backend_port` value (default 8081) while exposing the service externally on port 8082.
+Use `nexus_host_port` to control which host port the Nexus container publishes without changing the container-side port. For example, setting `nexus_host_port: 8082` keeps the container listening on the `nexus_backend_port` value (default 8081) while exposing the service externally on port 8082. The Nexus data volume path can be tuned with `nexus_data_directory`, which defaults to `<nexus_docker_compose_location>/nexus-data` so you can relocate persistent storage if desired.
 
-The `nexus_server_name` and `nexus_server_alias` parameters instruct Nginx to forward traffic for the specified hostnames to Nexus. You may specify as many `nexus_server_alias` names as you wish, or you may leave it empty or undefined.  
+Portainer CE can be deployed alongside Nexus to provide a web UI for managing the Docker host. Enable it by setting `portainer_enabled: true` in `ansible/group_vars/all.yml`. You can further customize the image via `portainer_image`, change the direct HTTPS listener with `portainer_host_port`, or adjust the data path with `portainer_data_directory`. When `portainer_use_nginx_proxy: false` (default), the Portainer container exposes its built-in HTTPS endpoint on `https://<host>:<portainer_host_port>` (default `9443`) and persists data under the configured directory.
+
+If you prefer to serve Portainer with a trusted certificate and friendly hostname (for example `docker.chnch.us` or `d.chnch.us`), set `portainer_use_nginx_proxy: true` and supply the desired names through `portainer_server_name` and `portainer_server_alias`. With those settings Nginx terminates TLS on port 443 using the same Let's Encrypt workflow as Nexus, proxies requests to Portainer over the internal HTTP port defined by `portainer_backend_port` (default `9000`), and the docker-compose deployment automatically includes the Portainer hostnames in the certificate request. Provide any additional hostnames as a YAML list in `portainer_server_alias` so each entry is added to the TLS Subject Alternative Name list.
+
+The `nexus_server_name` and `nexus_server_alias` parameters instruct Nginx to forward traffic for the specified hostnames to Nexus. Populate `nexus_server_alias` with a YAML list when you need to advertise multiple additional hostnames, or leave it empty if you only use the primary name.
 
 The Nexus deployment Ansible role is able to execute a script which configures Nexus using its REST API. If you wish to use this feature, you may edit the `ansible/roles/install_nexus/templates/nexus-autoconfiguration.sh.j2` autoconfiguration script template and set `nexus_autoconfiguration: true` in `ansible/group_vars/all.yml` before you run the deployment.
 

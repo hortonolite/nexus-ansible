@@ -1,6 +1,22 @@
 # === Nexus
 nexus_docker_image: sonatype/nexus3:3.56.0
+nexus_docker_compose_location: /srv/nexus
+nexus_data_directory: "{{ nexus_docker_compose_location }}/nexus-data"
 nexus_autoconfiguration: true
+
+
+# === Portainer
+portainer_enabled: false
+portainer_image: portainer/portainer-ce:latest
+portainer_host_port: 9443
+portainer_data_directory: "{{ nexus_docker_compose_location }}/portainer-data"
+portainer_use_nginx_proxy: false
+portainer_server_name: docker.chnch.us
+# Example:
+# portainer_server_alias:
+#   - d.chnch.us
+portainer_server_alias: []
+portainer_backend_port: 9000
 
 
 # === Nginx
@@ -9,8 +25,10 @@ nexus_backend_name: nexus
 nexus_host_port: 8081
 nexus_backend_port: 8081
 nexus_server_name: nexus.example.org
-# Example: nexus_server_alias: repo.example.org
-nexus_server_alias: 
+# Example:
+# nexus_server_alias:
+#   - repo.example.org
+nexus_server_alias: []
 
 
 # == Let's Encrypt
